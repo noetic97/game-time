@@ -7,6 +7,4 @@ describe(' testing Frog', () => {
      const frogger = new Frog(10, 5)
     expect(frogger).to.be.an.instanceof(Frog)
   })
-
-  it('should ')
 })
