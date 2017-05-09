@@ -55,26 +55,29 @@
 	var Cars = __webpack_require__(3);
 	var Logs = __webpack_require__(4);
 	var Dock = __webpack_require__(5);
+	// var Gameboard = require('./Gameboard.js')
 
 	var canvas = document.getElementById('game');
 	var ctx = canvas.getContext('2d');
+	// var gameboard = new Gameboard(0, 0, canvas.width, canvas.height, '#000')
 	var frogger = new Frog(350, 650);
 	var gameOver = false;
-	var dock = new Dock(50, 50);
-
-	document.addEventListener('keydown', function (event) {
-	  // frogger.moveInDock(event, canvas, frogger, docksToDraw)
-	  if (frogger.y < 150 && frogger.y > 50) {
-	    frogger.moveInDock(event, canvas, frogger, docksToDraw);
-	  } else {
-	    frogger.move(event, canvas);
-	  }
-	});
+	var carsToDraw = generateCarsArray();
+	var logsToDraw = generateLogsArray();
+	var docksToDraw = generateDock();
 
 	document.addEventListener('keydown', function (event) {
 	  if (event.keyCode === 89) {
 	    gameOver = !gameOver;
 	    startGame();
+	  }
+	});
+
+	document.addEventListener('keydown', function (event) {
+	  if (frogger.y < 150 && frogger.y > 50) {
+	    frogger.moveInDock(event, canvas, frogger, docksToDraw);
+	  } else {
+	    frogger.move(event, canvas);
 	  }
 	});
 
@@ -118,8 +121,6 @@
 	  return carsArray;
 	}
 
-	var carsToDraw = generateCarsArray();
-
 	function generateLogsArray() {
 	  var logsArray = [];
 	  var x = 100;
@@ -160,21 +161,20 @@
 	  return logsArray;
 	}
 
-	var logsToDraw = generateLogsArray();
-
 	function generateDock() {
 	  var dockArray = [];
 	  var x = 50;
 
 	  for (var i = 0; i < 5; i++) {
 	    var newDock = new Dock(x, 50);
+
 	    dockArray.push(newDock);
 	    x += 75 + newDock.height;
 	  }
 	  return dockArray;
 	}
 
-	var docksToDraw = generateDock();
+	// console.log(dockArray);
 
 	function drawLives(ctx, numLives) {
 	  ctx.font = "30px Comic Sans MS";
@@ -186,27 +186,20 @@
 	  if (gameOver) {
 	    requestAnimationFrame(function gameLoop() {
 	      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	      // gameboard.drawBoard(ctx);
 	      drawLives(ctx, frogger.startLifes);
 
 	      carsToDraw.forEach(function (car) {
-	        if (car.y === 600) {
-	          car.draw(ctx);
-	        } else if (car.y === 550) {
-	          car.draw(ctx);
-	        } else if (car.y === 500) {
-	          car.draw(ctx);
-	        } else if (car.y === 450) {
-	          car.draw(ctx);
-	        } else if (car.y === 400) {
-	          car.draw(ctx);
-	        }
+	        car.draw(ctx);
 	        car.moveCars();
 	        car.resetPostition();
 	      });
+
 	      logsToDraw.forEach(function (log) {
 	        log.draw(ctx);
 	        log.moveLogs();
-	        log.resetPostition();
+	        log.resetPosition();
 	      });
 
 	      docksToDraw.forEach(function (dock) {
@@ -216,10 +209,7 @@
 	      frogger.collisionDetection(frogger, carsToDraw);
 	      frogger.logCollisionDetection(frogger, logsToDraw);
 	      frogger.frogLandInDock(frogger, docksToDraw);
-	      // frogger.drawPlaceholderFrog(ctx)
 	      frogger.draw(ctx);
-
-	      // generateDock(ctx);
 	      requestAnimationFrame(gameLoop);
 	    });
 	  }
@@ -229,97 +219,121 @@
 /* 2 */
 /***/ (function(module, exports) {
 
-	function Frog(x, y, vX) {
-	  this.x = x;
-	  this.y = y;
-	  this.vX = vX;
-	  this.height = 45;
-	  this.width = 45;
-	  this.startLifes = 3;
+	class Frog {
+	  constructor(x, y) {
+	    this.x = x;
+	    this.y = y;
+	    this.height = 45;
+	    this.width = 45;
+	    this.startLifes = 3;
+	    this.vX = 0;
+	  }
+
+	  draw(ctx) {
+	    ctx.drawImage(frogImage, this.x, this.y, this.width, this.height);
+	  }
+
+	  move(event, canvas) {
+	    switch (event.keyCode) {
+	      case this.x < canvas.width - 50 && (39 || 68):
+	        this.x += 50;
+	        break;
+	      case this.x > 0 && (37 || 65):
+	        this.x -= 50;
+	        break;
+	      case this.y > 100 && (38 || 87):
+	        this.y -= 50;
+	        break;
+	      case this.y < canvas.height - 100 && (40 || 83):
+	        this.y += 50;
+	        break;
+	      default:
+	    }
+	  }
+
+	  moveInDock(event, canvas, frogger, docksToDraw) {
+	    switch (event.keyCode) {
+	      case this.x < canvas.width - 50 && (39 || 68):
+	        this.x += 50;
+	        break;
+	      case this.x > 0 && (37 || 65):
+	        this.x -= 50;
+	        break;
+	      case frogMoveIntoDock(frogger, docksToDraw) && (38 || 87):
+	        this.y -= 50;
+	        break;
+	      case this.y < canvas.height - 100 && (40 || 83):
+	        this.y += 50;
+	        break;
+	      default:
+	    }
+	  }
+
+	  logMove() {
+	    this.x += this.vX;
+	  }
+
+	  resetFrog() {
+	    this.x = 350;
+	    this.y = 650;
+	  }
+
+	  collisionDetection(frogger, carsToDraw) {
+	    carsToDraw.forEach(function (car) {
+	      if (frogger.x < car.x + car.width && frogger.x + frogger.width > car.x && frogger.y < car.y + car.height && frogger.height + frogger.y > car.y) {
+	        console.log(frogger);
+	        frogger.startLifes--;
+	        frogger.resetFrog();
+	        alert('Ya Dead!');
+	      } else if (!frogger.startLifes) {
+	        frogger.startLifes = 3;
+	        alert('Game Over');
+	      }
+	    });
+	  }
+
+	  logCollisionDetection(frogger, logsToDraw) {
+	    while (frogger.y < 350 && frogger.y > 50) {
+	      if (findLogsCollision(frogger, logsToDraw)) {
+	        return true;
+	      } else {
+	        frogger.startLifes--;
+	        frogger.resetFrog();
+	        alert('Ya Dead!');
+	      }
+	    }
+	  }
+
+	  frogInDock(frogger, docksToDraw) {
+	    for (var i = 0; i < docksToDraw.length; i++) {
+	      if (frogger.x < docksToDraw[i].x + docksToDraw[i].width && //
+	      frogger.x + frogger.width > docksToDraw[i].x && frogger.y < docksToDraw[i].y + docksToDraw[i].height && frogger.height + frogger.y > docksToDraw[i].y) {
+	        return true;
+	      }
+	    }
+	  }
+
+	  frogLandInDock(frogger, docksToDraw) {
+	    while (frogger.y < 100) {
+	      if (this.frogInDock(frogger, docksToDraw)) {
+	        setTimeout(function () {
+	          frogger.resetFrog();
+	        }, 1000);
+	      }
+	      break;
+	    }
+	  }
+
 	}
 
 	var frogImage;
-	var frogKingImage;
 
 	loadResources();
 
 	function loadResources() {
 	  frogImage = new Image();
 	  frogImage.src = "lib/images/frog.png";
-	  frogKingImage = new Image();
-	  frogKingImage.src = "lib/images/frog-king.png";
 	}
-
-	Frog.prototype.draw = function (ctx) {
-	  // ctx.fillStyle = "rgba(0, 255, 0, 1)"
-	  // ctx.fillRect(
-	  ctx.drawImage(frogImage, this.x, this.y, this.width, this.height);
-	};
-
-	Frog.prototype.move = function (event, canvas) {
-	  switch (event.keyCode) {
-	    case this.x < canvas.width - 50 && (39 || 68):
-	      this.x += 50;
-	      break;
-	    case this.x > 0 && (37 || 65):
-	      this.x -= 50;
-	      break;
-	    case this.y > 100 && (38 || 87):
-	      this.y -= 50;
-	      break;
-	    case this.y < canvas.height - 100 && (40 || 83):
-	      this.y += 50;
-	      break;
-	    default:
-	  }
-	  console.log('frog x: ', this.x, ' frogger y ', this.y);
-	};
-	Frog.prototype.moveInDock = function (event, canvas, frogger, docksToDraw) {
-	  console.log(frogMoveIntoDock(frogger, docksToDraw));
-	  switch (event.keyCode) {
-	    case this.x < canvas.width - 50 && (39 || 68):
-	      this.x += 50;
-	      break;
-	    case this.x > 0 && (37 || 65):
-	      this.x -= 50;
-	      break;
-	    case frogMoveIntoDock(frogger, docksToDraw) && (38 || 87):
-	      this.y -= 50;
-	      break;
-	    case this.y < canvas.height - 100 && (40 || 83):
-	      this.y += 50;
-	      break;
-	    default:
-	  }
-	  console.log('move in dock');
-	};
-
-	Frog.prototype.logMove = function () {
-	  this.x += this.vX;
-	};
-
-	Frog.prototype.resetFrog = function () {
-	  this.x = 350;
-	  this.y = 650;
-	};
-
-	function drawPlaceholderFrog(ctx) {
-	  ctx.drawImage(frogKingImage, this.x = 100, this.y = 100, this.width, this.height);
-	}
-
-	Frog.prototype.collisionDetection = function (frogger, carsToDraw) {
-	  carsToDraw.forEach(function (car) {
-	    if (frogger.x < car.x + car.width && frogger.x + frogger.width > car.x && frogger.y < car.y + car.height && frogger.height + frogger.y > car.y) {
-
-	      frogger.startLifes--;
-	      frogger.resetFrog();
-	      alert('Ya Dead!');
-	    } else if (!frogger.startLifes) {
-	      frogger.startLifes = 3;
-	      alert('Game Over');
-	    }
-	  });
-	};
 
 	function findLogsCollision(frogger, logsToDraw) {
 	  for (var i = 0; i < logsToDraw.length; i++) {
@@ -331,48 +345,134 @@
 	  }
 	}
 
-	Frog.prototype.logCollisionDetection = function (frogger, logsToDraw) {
-	  while (frogger.y < 350 && frogger.y > 50) {
-	    if (findLogsCollision(frogger, logsToDraw)) {} else {
-	      frogger.startLifes--;
-	      frogger.resetFrog();
-	      alert('Ya Dead!');
-	    }
-	    break;
-	  }
-	};
-
-	// if frogger has y below 100 and x
-
-	function frogInDock(frogger, docksToDraw) {
-	  for (var i = 0; i < docksToDraw.length; i++) {
-	    if (frogger.x < docksToDraw[i].x + docksToDraw[i].width && //
-	    frogger.x + frogger.width > docksToDraw[i].x && frogger.y < docksToDraw[i].y + docksToDraw[i].height && frogger.height + frogger.y > docksToDraw[i].y) {
-	      return true;
-	    }
-	  }
-	}
 	function frogMoveIntoDock(frogger, docksToDraw) {
 	  for (var i = 0; i < docksToDraw.length; i++) {
 	    if (frogger.x > docksToDraw[i].x && frogger.x + frogger.width < docksToDraw[i].x + docksToDraw[i].width) {
-	      console.log(docksToDraw[i]);
 	      return true;
 	    }
 	  }
 	}
 
-	Frog.prototype.frogLandInDock = function (frogger, docksToDraw) {
-	  while (frogger.y < 100) {
-	    if (frogInDock(frogger, docksToDraw)) {
-	      console.log('sitting at the dock of the bay');
-	      setTimeout(function () {
-	        frogger.resetFrog();
-	        drawPlaceholderFrog();
-	      }, 1000);
-	    }
-	    break;
-	  }
-	};
+	// function Frog(x, y) {
+	//   this.x = x;
+	//   this.y = y;
+	//   this.height = 45;
+	//   this.width = 45;
+	//   this.startLifes = 3;
+	//   this.vX = 0;
+	// }
+	//
+	//
+	//
+	// Frog.prototype.draw = function (ctx) {
+	//   ctx.drawImage(frogImage,
+	//     this.x,
+	//     this.y,
+	//     this.width,
+	//     this.height
+	//    );
+	// };
+	//
+	// Frog.prototype.move = function(event, canvas) {
+	//   switch (event.keyCode) {
+	//   case this.x < canvas.width - 50 && (39 || 68):
+	//     this.x += 50;
+	//     break;
+	//   case this.x > 0 && (37 || 65):
+	//     this.x -= 50;
+	//     break
+	//   case this.y > 100 && (38 || 87):
+	//     this.y -= 50;
+	//     break
+	//   case this.y < canvas.height - 100 && (40 || 83):
+	//     this.y += 50;
+	//     break
+	//   default:
+	//   }
+	// }
+	//
+	// Frog.prototype.moveInDock = function(event, canvas, frogger, docksToDraw) {
+	//   switch (event.keyCode) {
+	//   case this.x < canvas.width - 50 && (39 || 68):
+	//     this.x += 50;
+	//     break;
+	//   case this.x > 0 && (37 || 65):
+	//     this.x -= 50;
+	//     break
+	//   case frogMoveIntoDock(frogger, docksToDraw) && (38 || 87):
+	//     this.y -= 50;
+	//     break
+	//   case this.y < canvas.height - 100 && (40 || 83):
+	//     this.y += 50;
+	//     break
+	//   default:
+	//   }
+	// }
+	//
+	// Frog.prototype.logMove = function() {
+	//   this.x += this.vX
+	// }
+	//
+	// Frog.prototype.resetFrog = function () {
+	//   this.x = 350;
+	//   this.y = 650;
+	// }
+	//
+	// Frog.prototype.collisionDetection = function (frogger, carsToDraw) {
+	//   carsToDraw.forEach(function(car) {
+	//     if (frogger.x < car.x + car.width &&
+	//     frogger.x + frogger.width > car.x &&
+	//     frogger.y < car.y + car.height  &&
+	//     frogger.height + frogger.y > car.y) {
+	//       console.log(frogger);
+	//       frogger.startLifes--;
+	//       frogger.resetFrog();
+	//       alert('Ya Dead!');
+	//
+	//     } else if (!frogger.startLifes) {
+	//       frogger.startLifes = 3;
+	//       alert('Game Over');
+	//     }
+	//   })
+	// };
+	//
+	//
+	//
+	// Frog.prototype.logCollisionDetection = function(frogger, logsToDraw) {
+	//   while (frogger.y < 350 && frogger.y > 50) {
+	//     if (findLogsCollision(frogger, logsToDraw)) {
+	//       return true;
+	//     } else {
+	//       frogger.startLifes--;
+	//       frogger.resetFrog();
+	//       alert('Ya Dead!');
+	//     }
+	//   }
+	// }
+	//
+	// Frog.prototype.frogInDock = function (frogger, docksToDraw) {
+	//   for (var i = 0; i < docksToDraw.length; i++) {
+	//     if (frogger.x < docksToDraw[i].x + docksToDraw[i].width && //
+	//       frogger.x + frogger.width > docksToDraw[i].x &&
+	//       frogger.y < docksToDraw[i].y + docksToDraw[i].height  &&
+	//       frogger.height + frogger.y > docksToDraw[i].y) {
+	//       return true;
+	//     }
+	//   }
+	// }
+	//
+	//
+	//
+	// Frog.prototype.frogLandInDock = function (frogger, docksToDraw) {
+	//   while (frogger.y < 100) {
+	//     if (this.frogInDock(frogger, docksToDraw)) {
+	//       setTimeout(function () {
+	//         frogger.resetFrog();
+	//       }, 1000)
+	//     }
+	//     break
+	//   }
+	// };
 
 	module.exports = Frog;
 
@@ -380,12 +480,30 @@
 /* 3 */
 /***/ (function(module, exports) {
 
-	function Cars(x, y, width, height, vX) {
-	  this.x = x;
-	  this.y = y;
-	  this.height = height;
-	  this.width = width;
-	  this.vX = vX;
+	class Cars {
+	  constructor(x, y, width, height, vX) {
+	    this.x = x;
+	    this.y = y;
+	    this.height = height;
+	    this.width = width;
+	    this.vX = vX;
+	  }
+
+	  draw(ctx) {
+	    ctx.drawImage(carImage, this.x, this.y, this.width, this.height);
+	  }
+
+	  resetPostition() {
+	    if (this.x <= -50) {
+	      this.x = 850;
+	    } else if (this.x >= 850) {
+	      this.x = -50;
+	    }
+	  }
+
+	  moveCars() {
+	    this.x += this.vX;
+	  }
 	}
 
 	var carImage;
@@ -400,63 +518,40 @@
 	  carImage2.src = "lib/images/car-left.png";
 	}
 
-	Cars.prototype.draw = function (ctx) {
-	  // ctx.fillStyle = "rgba(0, 0, 0, 1)"
-	  // ctx.fillRect(
-	  ctx.drawImage(carImage, this.x, this.y, this.width, this.height);
-	  ctx.drawImage(carImage2, this.x, this.y, this.width, this.height);
-	};
-
-	Cars.prototype.resetPostition = function () {
-	  if (this.x <= -50) {
-	    this.x = 850;
-	  } else if (this.x >= 850) {
-	    this.x = -50;
-	  }
-	};
-
-	Cars.prototype.moveCars = function () {
-	  this.x += this.vX;
-	};
-
-	// Cars.prototype.generateCarsArray = function() {
-	//   var carsArray = [];
-	//   var x = 100;
+	// function Cars(x, y, width, height, vX) {
+	//   this.x = x;
+	//   this.y = y;
+	//   this.height = height;
+	//   this.width = width;
+	//   this.vX = vX;
+	// }
 	//
-	//   for (var i = 1; i < 13; i++) {
-	//     switch (i === true) {
-	//     case i > 3 :
-	//       var carRow1 = new Cars(x, 650, 50, 50, -1)
 	//
-	//       x += 200
-	//       carsArray.push(carRow1);
-	//       break
-	//     case i > 6:
-	//       var carRow2 = new Cars( x, 600, 50, 50, 2)
+	// Cars.prototype.draw = function (ctx) {
+	//   ctx.drawImage(carImage,
+	//     this.x,
+	//     this.y,
+	//     this.width,
+	//     this.height
+	//   );
+	//   ctx.drawImage(carImage2,
+	//     this.x,
+	//     this.y,
+	//     this.width,
+	//     this.height
+	//   );
+	// };
 	//
-	//       x -= 200
-	//       carsArray.push(carRow2)
-	//       break
-	//     case i > 9:
-	//       x += 250
-	//       var carRow3 = new Cars( x, 550, 50, 50, -3)
-	//
-	//       carsArray.push(carRow3)
-	//       break
-	//     case i > 10:
-	//       var carRow4 = new Cars( 400, 500, 50, 50, 4)
-	//
-	//       carsArray.push(carRow4)
-	//       break
-	//     case i > 12:
-	//       x -= 350
-	//       var carRow5 = new Cars( x, 450, 100, 50, -2)
-	//
-	//       carsArray.push(carRow5)
-	//       break
-	//     }
+	// Cars.prototype.resetPostition = function()  {
+	//   if (this.x <= -50) {
+	//     this.x = 850;
+	//   } else if (this.x >= 850) {
+	//     this.x = -50;
 	//   }
-	//   return carsArray
+	// }
+	//
+	// Cars.prototype.moveCars = function() {
+	//   this.x += this.vX;
 	// }
 
 	module.exports = Cars;
@@ -465,12 +560,30 @@
 /* 4 */
 /***/ (function(module, exports) {
 
-	function Logs(x, y, width, height, vX) {
-	  this.x = x;
-	  this.y = y;
-	  this.height = height;
-	  this.width = width;
-	  this.vX = vX;
+	class Logs {
+	  constructor(x, y, width, height, vX) {
+	    this.x = x;
+	    this.y = y;
+	    this.height = height;
+	    this.width = width;
+	    this.vX = vX;
+	  }
+
+	  draw(ctx) {
+	    ctx.drawImage(logImage, this.x, this.y, this.width, this.height);
+	  }
+
+	  resetPosition() {
+	    if (this.x <= -150) {
+	      this.x = 850;
+	    } else if (this.x >= 850) {
+	      this.x = -150;
+	    }
+	  }
+
+	  moveLogs() {
+	    this.x += this.vX;
+	  }
 	}
 
 	var logImage;
@@ -481,22 +594,34 @@
 	  logImage = new Image();
 	  logImage.src = "lib/images/log.png";
 	}
+	// function Logs(x, y, width, height, vX) {
+	//   this.x = x;
+	//   this.y = y;
+	//   this.height = height;
+	//   this.width = width;
+	//   this.vX = vX;
+	// }
 
-	Logs.prototype.draw = function (ctx) {
-	  ctx.drawImage(logImage, this.x, this.y, this.width, this.height);
-	};
-
-	Logs.prototype.resetPostition = function () {
-	  if (this.x <= -150) {
-	    this.x = 850;
-	  } else if (this.x >= 850) {
-	    this.x = -150;
-	  }
-	};
-
-	Logs.prototype.moveLogs = function () {
-	  this.x += this.vX;
-	};
+	// Logs.prototype.draw = function (ctx) {
+	//   ctx.drawImage(logImage,
+	//     this.x,
+	//     this.y,
+	//     this.width,
+	//     this.height
+	//   );
+	// };
+	//
+	// Logs.prototype.resetPostition = function()  {
+	//   if (this.x <= -150) {
+	//     this.x = 850;
+	//   } else if (this.x >= 850) {
+	//     this.x = -150;
+	//   }
+	// }
+	//
+	// Logs.prototype.moveLogs = function() {
+	//   this.x += this.vX;
+	// }
 
 	module.exports = Logs;
 
@@ -504,17 +629,43 @@
 /* 5 */
 /***/ (function(module, exports) {
 
-	function Dock(x, y) {
-	  this.x = x;
-	  this.y = y;
-	  this.width = 75;
-	  this.height = 50;
+	class Dock {
+	  constructor(x, y) {
+	    this.x = x;
+	    this.y = y;
+	    this.width = 80;
+	    this.height = 50;
+	  }
+
+	  drawDock(ctx) {
+	    ctx.drawImage(dockImage, this.x, this.y, this.width = 75, this.height = 50);
+	  }
 	}
 
-	Dock.prototype.drawDock = function (ctx) {
-	  ctx.fillStyle = "rgba(0, 255, 0, 1)";
-	  ctx.fillRect(this.x, this.y, this.width, this.height);
-	};
+	var dockImage;
+
+	loadResources();
+
+	function loadResources() {
+	  dockImage = new Image();
+	  dockImage.src = "lib/images/lilypad.png";
+	}
+
+	// function Dock(x, y) {
+	//   this.x = x;
+	//   this.y = y;
+	//   this.width = 80;
+	//   this.height = 50;
+	// }
+	//
+	// Dock.prototype.drawDock = function (ctx) {
+	//   ctx.drawImage(dockImage,
+	//     this.x,
+	//     this.y,
+	//     this.width = 75,
+	//     this.height = 50
+	//   )
+	// };
 
 	module.exports = Dock;
 
