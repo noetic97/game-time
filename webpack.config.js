@@ -17,5 +17,9 @@ module.exports = {
   },
   resolve: {
     extensions: ['', '.js', '.json', '.css']
+  },
+  devServer: {
+    inline: true,
+    stats: 'errors-only'
   }
 };

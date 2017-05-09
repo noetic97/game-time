@@ -4,6 +4,9 @@ const expect = require('chai').expect;
 describe(' testing Frog', () => {
 
   it('should create a new frog', () => {
+    // var event = {
+    //   keyCode: 54
+    // }
      const frogger = new Frog(10, 5)
     expect(frogger).to.be.an.instanceof(Frog)
   })

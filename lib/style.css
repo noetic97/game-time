@@ -1,21 +1,31 @@
 body {
-  text-align: center;
   box-sizing: border-box;
   font-family: 'Press Start 2P', cursive;
+  text-align: center;
 }
 
 #game-container {
-  margin: 0 auto;
-  /*background-color: green;*/
-  /*position: relative;*/
+  height: 750px;
+  margin: 50px auto;
+  position: relative;
+  width: 750px
 }
 
 canvas {
-  margin-top: 25px;
   border: 25px groove rgb(91, 185, 81);
   border-radius: 15px;
-  position: relative;
+  margin: 0;
   z-index: 1;
+}
+#game-start {
+  background-color: lightgray;
+  display: inline-block;
+  height: 750px;
+  left: 25px;
+  position: absolute;
+  top: 25px;
+  width: 700px;
+  z-index: 2;
 }
 
 #game-start img {
@@ -23,26 +33,17 @@ canvas {
 }
 
 #game-start p {
-  font-size: 48pt;
   color: #35BF36;
-}
-
-#game-start {
-  background-color: lightgray;
-  display: inline-block;
-  height: 750px;
-  width: 700px;
-  position: relative;
-  z-index: 2;
+  font-size: 48pt;
 }
 
 button {
-  text-decoration: none;
-  border: none;
-  width: 200px;
-  height: 50px;
   background-color: #35BF36;
+  border: none;
   color: white;
+  height: 50px;
   font-size: 20px;
   font-weight: bold;
+  text-decoration: none;
+  width: 200px;
 }
