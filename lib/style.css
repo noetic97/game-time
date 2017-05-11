@@ -18,7 +18,7 @@ canvas {
   z-index: 1;
 }
 #game-start {
-  background-color: lightgray;
+  background: lightgray;
   display: inline-block;
   height: 750px;
   left: 25px;
@@ -28,16 +28,67 @@ canvas {
   z-index: 2;
 }
 
-#game-start img {
+#start-logo {
   margin: 30px auto 0;
 }
 
-#game-start h3 {
+#game-paused {
+  display: none;
+  height: 750px;
+  left: 25px;
+  position: absolute;
+  top: 25px;
+  width: 700px;
+  z-index: 4;
+}
+
+#pause-logo {
+  margin-top: 150px;
+}
+
+#pause-background {
+  display: none;
+  height: 750px;
+  background-color: lightgray;
+  left: 25px;
+  position: absolute;
+  top: 25px;
+  width: 700px;
+  z-index: 3;
+  opacity: .5;
+
+}
+
+#game-died {
+  display: none;
+  height: 750px;
+  left: 25px;
+  position: absolute;
+  top: 25px;
+  width: 700px;
+  z-index: 4;
+}
+
+#player-dead {
+  color: red;
+}
+
+#game-over {
+  display: none;
+  height: 750px;
+  left: 25px;
+  position: absolute;
+  top: 25px;
+  width: 700px;
+  z-index: 5;
+}
+
+.game-status {
   color: #35BF36;
   font-size: 48pt;
 }
 
-#directions {
+.directions {
   width: 400px;
   margin: 50px auto 0;
 }
