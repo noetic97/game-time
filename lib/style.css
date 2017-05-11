@@ -29,12 +29,17 @@ canvas {
 }
 
 #game-start img {
-  margin: 50px auto;
+  margin: 30px auto 0;
 }
 
-#game-start p {
+#game-start h3 {
   color: #35BF36;
   font-size: 48pt;
+}
+
+#directions {
+  width: 400px;
+  margin: 50px auto 0;
 }
 
 button {
