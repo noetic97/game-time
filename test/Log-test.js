@@ -7,11 +7,15 @@ describe('Testing Log', () => {
   const log = new Logs(5, 10, 20, 30, 1)
 
   it('should instantiate new log', () => {
-    expect(log).to.be.an.instanceof(Logs)
+    expect(log).to.be.an.instanceof(Logs);
   })
 
-  it('should have an x value of 5', () => {
-    expect(log.x).to.equal(5)
+  it('should have a value for an x, y, height, width, and vX', () => {
+    expect(log.x).to.equal(5);
+    expect(log.y).to.equal(10);
+    expect(log.width).to.equal(20);
+    expect(log.height).to.equal(30);
+    expect(log.vX).to.equal(1);
   })
 
   it('should draw something', () => {
@@ -29,7 +33,12 @@ describe('Testing Log', () => {
   })
 
   it('should move the log', () => {
-    log.moveLogs()
-    expect(log.x).to.equal(6)
+    log.moveLogs();
+    expect(log.x).to.equal(6);
+  })
+  it('should generate an array of 12 logs', () => {
+    let logsArray = log.generateLogsArray();
+
+    expect(logsArray.length).to.equal(12);
   })
 })
