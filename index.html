@@ -7,7 +7,6 @@
 </head>
 <body>
 <main id="game-container">
-
   <canvas
     id="game"
     height="750"
@@ -15,13 +14,41 @@
   </canvas>
   <div id="game-start">
     <img src="https://www.2ndchanceplay.com/CO/Frogger/template/frogger2/media/assets/images/nav-image-frogger.png"
-    alt="Frogger game logo">
-    <h3>Click to Start!</h3>
+    alt="Frogger game logo" id="start-logo">
+    <h3 class="game-status">Click to Start!</h3>
     <button type="button" name="button" id="start-button">Start</button>
-    <div id="directions">      
+    <div class="directions">
       <p>Use the arrow keys to move your frog to the pads.  Make sure to avoid the obstacles!!!</p>
+      <p>Press space bar to pause.</p>
+    </div>
   </div>
+  <div id="game-paused">
+    <img src="https://www.2ndchanceplay.com/CO/Frogger/template/frogger2/media/assets/images/nav-image-frogger.png"
+    alt="Frogger game logo" id="pause-logo">
+    <h3 class="game-status">PAUSED</h3>
+    <div class="directions">
+      <p>Press the space bar to unpause... I know you want to...</p>
+    </div>
   </div>
+  <div id="game-died">
+    <img src="https://www.2ndchanceplay.com/CO/Frogger/template/frogger2/media/assets/images/nav-image-frogger.png"
+    alt="Frogger game logo" id="pause-logo">
+    <h3 class="game-status" id="player-dead">Ya Dead!!!</h3>
+    <div class="directions">
+      <p>Press enter to keep playing!</p>
+    </div>
+  </div>
+  <div id="game-over">
+    <img src="https://www.2ndchanceplay.com/CO/Frogger/template/frogger2/media/assets/images/nav-image-frogger.png"
+    alt="Frogger game logo" id="pause-logo">
+    <h3 class="game-status">GAME OVER</h3>
+    <div class="directions">
+      <p>Press enter to play again!</p>
+    </div>
+  </div>
+  <div id="pause-background"></div>
+
+
 </main>
 
   <script src="main.bundle.js"></script>
