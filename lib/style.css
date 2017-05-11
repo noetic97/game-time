@@ -1,7 +1,12 @@
+html {
+  background-color: black;
+}
+
 body {
   box-sizing: border-box;
   font-family: 'Press Start 2P', cursive;
   text-align: center;
+
 }
 
 #game-container {

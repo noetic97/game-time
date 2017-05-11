@@ -17,9 +17,6 @@ describe(' testing Frog', () => {
   }
 
   const obstacleArray = [ obstacle ]
-  console.log(obstacleArray);
-
-  // const alert = window.alert()
 
   it('Should create a new frog', () => {
     expect(frogger).to.be.an.instanceof(Frog)
