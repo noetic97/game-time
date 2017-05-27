@@ -1,7 +1,7 @@
 {
-  "name": "game-time-starter-kit-fem1",
+  "name": "Frogger",
   "version": "1.0.0",
-  "description": "Starter kit for Turing School's front-end module 1 Game Time project",
+  "description": "Frogger!! - based on the old-school game from the 80's",
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/webpack-dev-server/bin/webpack-dev-server.js",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/turingschool-examples/game-time-starter-kit-FEm1.git"
+    "url": "https://github.com/noetic97/game-time"
   },
-  "author": "Turing School of Software and Design - Robbie Jaeger",
+  "author": "Joe Heitkamp and James Sullivan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/turingschool-examples/game-time-starter-kit-FEm1/issues"
+    "url": "https://github.com/noetic97/game-time/issues"
   },
-  "homepage": "https://github.com/turingschool-examples/game-time-starter-kit-FEm1#readme",
+  "homepage": "https://github.com/noetic97/game-time",
   "devDependencies": {
     "babel": "^6.5.2",
     "babel-core": "^6.18.2",
