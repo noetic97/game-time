@@ -8,8 +8,9 @@ module.exports = {
   output: {
     path: __dirname,
     filename: "[name].bundle.js"
-    publicPath: '/game-time'
+    // publicPath: '/game-time'
   },
+
   module: {
     loaders: [
       { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader' },
