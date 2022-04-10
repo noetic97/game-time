@@ -45,173 +45,185 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	__webpack_require__(1);
-	__webpack_require__(6);
+	__webpack_require__(7);
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var Frog = __webpack_require__(2);
-	var Cars = __webpack_require__(3);
-	var Logs = __webpack_require__(4);
-	var Dock = __webpack_require__(5);
-	// var Gameboard = require('./Gameboard.js')
+	// Requirements
 
-	var canvas = document.getElementById('game');
-	var ctx = canvas.getContext('2d');
-	// var gameboard = new Gameboard(0, 0, canvas.width, canvas.height, '#000')
-	var frogger = new Frog(350, 650);
-	var gameOver = false;
-	var carsToDraw = generateCarsArray();
-	var logsToDraw = generateLogsArray();
-	var docksToDraw = generateDock();
+	const Frog = __webpack_require__(2);
+	const Cars = __webpack_require__(3);
+	const Logs = __webpack_require__(4);
+	const Dock = __webpack_require__(5);
+	const Gameboard = __webpack_require__(6);
 
-	document.addEventListener('keydown', function (event) {
-	  if (event.keyCode === 89) {
-	    gameOver = !gameOver;
-	    startGame();
-	  }
-	});
+	// Canvas DOM Manipulation
 
-	document.addEventListener('keydown', function (event) {
-	  if (frogger.y < 150 && frogger.y > 50) {
-	    frogger.moveInDock(event, canvas, frogger, docksToDraw);
-	  } else {
-	    frogger.move(event, canvas);
-	  }
-	});
+	const canvas = document.getElementById('game');
+	const ctx = canvas.getContext('2d');
 
-	function generateCarsArray() {
-	  var carsArray = [];
-	  var x = 100;
+	// Game Objects
 
-	  for (var i = 1; i < 13; i++) {
-	    switch (i === true) {
-	      case i > 3:
-	        var carRow1 = new Cars(x, 600, 50, 35, -1);
+	const gameboard = new Gameboard(0, 0, canvas.width, canvas.height);
+	const frogger = new Frog(350, 650);
+	const cars = new Cars();
+	const logs = new Logs();
+	const dock = new Dock();
 
-	        x += 200;
-	        carsArray.push(carRow1);
-	        break;
-	      case i > 6:
-	        var carRow2 = new Cars(x, 550, 50, 35, 2);
+	// Gerate Game Object Arrays
 
-	        x -= 200;
-	        carsArray.push(carRow2);
-	        break;
-	      case i > 9:
-	        var carRow3 = new Cars(x, 500, 50, 35, -2);
+	const carsToDraw = cars.generateCarsArray();
+	const logsToDraw = logs.generateLogsArray();
+	const docksToDraw = dock.generateDock();
 
-	        x += 250;
-	        carsArray.push(carRow3);
-	        break;
-	      case i > 10:
-	        var carRow4 = new Cars(x, 450, 50, 35, 3);
+	// Game State Flags
 
-	        carsArray.push(carRow4);
-	        break;
-	      case i > 12:
-	        var carRow5 = new Cars(x, 400, 90, 40, -2);
+	let beginGame = false;
+	let pause = false;
+	let stopGameFlag = false;
+	let pauseDeadFlag = true;
 
-	        x -= 350;
-	        carsArray.push(carRow5);
-	        break;
-	    }
-	  }
-	  return carsArray;
-	}
+	// DOM Elements
 
-	function generateLogsArray() {
-	  var logsArray = [];
-	  var x = 100;
+	const startGameScreen = document.getElementById('game-start');
+	const pauseScreen = document.getElementById('game-paused');
+	const startButton = document.getElementById('start-button');
+	const pauseBackground = document.getElementById('pause-background');
+	const gameOverScreen = document.getElementById('game-over');
+	const loseLifeScreen = document.getElementById('game-died');
 
-	  for (var i = 1; i < 13; i++) {
-	    switch (i === true) {
-	      case i > 3:
-	        var logRow1 = new Logs(x, 300, 100, 50, -3);
+	// Event Listeners
 
-	        x += 200;
-	        logsArray.push(logRow1);
-	        break;
-	      case i > 6:
-	        var logRow2 = new Logs(x, 250, 150, 50, 2);
+	startButton.addEventListener('click', gameStart);
 
-	        x -= 200;
-	        logsArray.push(logRow2);
-	        break;
-	      case i > 9:
-	        var logRow3 = new Logs(x, 200, 100, 50, -2);
+	document.addEventListener('keydown', moveFrog);
 
-	        x += 250;
-	        logsArray.push(logRow3);
-	        break;
-	      case i > 10:
-	        var logRow4 = new Logs(x, 150, 150, 50, 3);
+	document.addEventListener('keydown', pauseGame);
 
-	        logsArray.push(logRow4);
-	        break;
-	      case i > 12:
-	        var logRow5 = new Logs(x, 100, 90, 50, -2);
+	document.addEventListener('keydown', keepPlaying);
 
-	        x -= 350;
-	        logsArray.push(logRow5);
-	        break;
-	    }
-	  }
-	  return logsArray;
-	}
-
-	function generateDock() {
-	  var dockArray = [];
-	  var x = 50;
-
-	  for (var i = 0; i < 5; i++) {
-	    var newDock = new Dock(x, 50);
-
-	    dockArray.push(newDock);
-	    x += 75 + newDock.height;
-	  }
-	  return dockArray;
-	}
-
-	// console.log(dockArray);
-
-	function drawLives(ctx, numLives) {
-	  ctx.font = "30px Comic Sans MS";
-	  ctx.fillStyle = "red";
-	  ctx.fillText(numLives + ' Lives', 25, 725);
-	}
+	// Game Loop
 
 	function startGame() {
-	  if (gameOver) {
-	    requestAnimationFrame(function gameLoop() {
+	  requestAnimationFrame(function gameLoop() {
+	    if (beginGame === true && pause === false && stopGameFlag === false) {
+	      const livesBeginning = frogger.startLifes;
+
 	      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	      // gameboard.drawBoard(ctx);
-	      drawLives(ctx, frogger.startLifes);
+	      gameboard.putBoardInGame(ctx, frogger.startLifes);
+	      gameboard.keepScore(frogger);
+	      gameboard.newHiScore();
+	      gameboard.levelUp(frogger, logsToDraw, carsToDraw);
 
 	      carsToDraw.forEach(function (car) {
-	        car.draw(ctx);
-	        car.moveCars();
-	        car.resetPostition();
+	        car.putCarsInGame(ctx);
 	      });
 
 	      logsToDraw.forEach(function (log) {
-	        log.draw(ctx);
-	        log.moveLogs();
-	        log.resetPosition();
+	        log.putLogsInGame(ctx);
 	      });
 
 	      docksToDraw.forEach(function (dock) {
-	        dock.drawDock(ctx);
+	        dock.draw(ctx);
 	      });
 
-	      frogger.collisionDetection(frogger, carsToDraw);
-	      frogger.logCollisionDetection(frogger, logsToDraw);
-	      frogger.frogLandInDock(frogger, docksToDraw);
+	      frogger.extraLife(gameboard);
+	      frogger.frogHitByCar(carsToDraw);
+	      frogger.logCollisionDetection(logsToDraw);
+	      frogger.frogLandInDock(docksToDraw);
+
 	      frogger.draw(ctx);
+
+	      gameboard.levelDown(frogger, logsToDraw, carsToDraw);
+
+	      loseLifeCheck(livesBeginning);
+	      gameOverCheckInGame();
+
 	      requestAnimationFrame(gameLoop);
-	    });
+	    }
+	  });
+	}
+
+	// Event Listener Callbacks
+
+	function gameStart() {
+	  beginGame = true;
+	  startGame();
+	  startGameScreen.style.display = 'none';
+	}
+
+	function pauseGame() {
+	  if (event.which == 32 && beginGame === true && pauseDeadFlag === true) {
+	    pause = !pause;
+	    pause === true ? pauseScreen.style.display = 'block' : pauseScreen.style.display = 'none';
+	    pause === true ? pauseBackground.style.display = 'block' : pauseBackground.style.display = 'none';
+	    startGame();
+	  }
+	}
+
+	function keepPlaying() {
+	  if (event.which == 13 && stopGameFlag === true) {
+	    gameOverScreen.style.display = 'none';
+	    loseLifeScreen.style.display = 'none';
+	    pauseBackground.style.display = 'none';
+	    stopGameFlag = false;
+	    pauseDeadFlag = true;
+	    startGame();
+	  }
+	}
+
+	function moveFrog() {
+	  if (frogger.y < 150 && frogger.y > 50) {
+	    frogger.moveInDock(event, canvas, docksToDraw);
+	  } else {
+	    frogger.move(event, canvas);
+	  }
+	}
+
+	// Game State Evaluation Functions
+
+	function loseLifeCheck(livesBeginning) {
+	  if (livesBeginning > frogger.startLifes && frogger.startLifes != 0) {
+	    stopGameFlag = true;
+	    pauseDeadFlag = false;
+	    loseLifeScreen.style.display = 'block';
+	    pauseBackground.style.display = 'block';
+	  }
+	}
+
+	function gameOverCheckInGame() {
+	  if (frogger.gameOverCheck()) {
+	    stopGameFlag = true;
+
+	    gameOverScreen.style.display = 'block';
+	    pauseBackground.style.display = 'block';
+	  }
+	}
+
+	// Cheat code
+
+	const secretCode = '38384040373937396665'; //99 lives Konami code
+	let input = '';
+	let timer;
+
+	document.addEventListener('keyup', function (event) {
+	  input += event.keyCode;
+
+	  clearTimeout(timer);
+	  timer = setTimeout(function () {
+	    input = '';
+	  }, 700);
+
+	  check_input();
+	});
+
+	function check_input() {
+	  if (input === secretCode) {
+	    frogger.startLifes = 99;
+	    alert('SO MANY LIVES!!!');
 	  }
 	}
 
@@ -230,47 +242,80 @@
 	  }
 
 	  draw(ctx) {
+	    let frogImage = new Image();
+
+	    frogImage.src = "lib/images/frog.png";
 	    ctx.drawImage(frogImage, this.x, this.y, this.width, this.height);
 	  }
 
 	  move(event, canvas) {
+	    const DIRECTIONS = {
+	      LEFT: 37,
+	      RIGHT: 39,
+	      UP: 38,
+	      DOWN: 40
+	    };
+	    const { LEFT, RIGHT, UP, DOWN } = DIRECTIONS;
+	    const gridSize = 50;
+
 	    switch (event.keyCode) {
-	      case this.x < canvas.width - 50 && (39 || 68):
-	        this.x += 50;
-	        break;
-	      case this.x > 0 && (37 || 65):
-	        this.x -= 50;
-	        break;
-	      case this.y > 100 && (38 || 87):
-	        this.y -= 50;
-	        break;
-	      case this.y < canvas.height - 100 && (40 || 83):
-	        this.y += 50;
-	        break;
+	      case this.x < canvas.width - gridSize && RIGHT:
+	        {
+	          this.x += gridSize;
+	          break;
+	        }
+	      case this.x > 0 && LEFT:
+	        {
+	          this.x -= gridSize;
+	          break;
+	        }
+	      case this.y > 100 && UP:
+	        {
+	          this.y -= gridSize;
+	          break;
+	        }
+	      case this.y < canvas.height - 100 && DOWN:
+	        {
+	          this.y += gridSize;
+	          break;
+	        }
 	      default:
 	    }
 	  }
 
-	  moveInDock(event, canvas, frogger, docksToDraw) {
+	  moveInDock(event, canvas, array) {
+	    const DIRECTIONS = {
+	      LEFT: 37,
+	      RIGHT: 39,
+	      UP: 38,
+	      DOWN: 40
+	    };
+	    const { LEFT, RIGHT, UP, DOWN } = DIRECTIONS;
+	    const gridSize = 50;
+
 	    switch (event.keyCode) {
-	      case this.x < canvas.width - 50 && (39 || 68):
-	        this.x += 50;
-	        break;
-	      case this.x > 0 && (37 || 65):
-	        this.x -= 50;
-	        break;
-	      case frogMoveIntoDock(frogger, docksToDraw) && (38 || 87):
-	        this.y -= 50;
-	        break;
-	      case this.y < canvas.height - 100 && (40 || 83):
-	        this.y += 50;
-	        break;
+	      case this.x < canvas.width - gridSize && RIGHT:
+	        {
+	          this.x += gridSize;
+	          break;
+	        }
+	      case this.x > 0 && LEFT:
+	        {
+	          this.x -= gridSize;
+	          break;
+	        }
+	      case this.frogCanDock(array) && UP:
+	        {
+	          this.y -= gridSize;
+	          break;
+	        }
+	      case this.y < canvas.height - 100 && DOWN:
+	        {
+	          this.y += gridSize;
+	          break;
+	        }
 	      default:
 	    }
-	  }
-
-	  logMove() {
-	    this.x += this.vX;
 	  }
 
 	  resetFrog() {
@@ -278,201 +323,76 @@
 	    this.y = 650;
 	  }
 
-	  collisionDetection(frogger, carsToDraw) {
-	    carsToDraw.forEach(function (car) {
-	      if (frogger.x < car.x + car.width && frogger.x + frogger.width > car.x && frogger.y < car.y + car.height && frogger.height + frogger.y > car.y) {
-	        console.log(frogger);
-	        frogger.startLifes--;
-	        frogger.resetFrog();
-	        alert('Ya Dead!');
-	      } else if (!frogger.startLifes) {
-	        frogger.startLifes = 3;
-	        alert('Game Over');
-	      }
-	    });
+	  extraLife(gameboard) {
+	    if (gameboard.score % 300 === 0 && this.y < 100) {
+	      this.startLifes++;
+	    }
 	  }
 
-	  logCollisionDetection(frogger, logsToDraw) {
-	    while (frogger.y < 350 && frogger.y > 50) {
-	      if (findLogsCollision(frogger, logsToDraw)) {
+	  collisionHelper(array) {
+	    for (let i = 0; i < array.length; i++) {
+	      if (this.x < array[i].x + array[i].width && this.x + this.width > array[i].x && this.y < array[i].y + array[i].height && this.height + this.y > array[i].y) {
+	        return true;
+	      }
+	    }
+	  }
+
+	  frogHitByCar(carsToDraw) {
+	    if (this.collisionHelper(carsToDraw)) {
+	      this.startLifes--;
+	      this.resetFrog();
+	    }
+	  }
+
+	  findLogsCollision(logsToDraw) {
+	    let { x, y, width, height } = this;
+
+	    for (let i = 0; i < logsToDraw.length; i++) {
+	      if (x < logsToDraw[i].x + logsToDraw[i].width && x + width > logsToDraw[i].x && y < logsToDraw[i].y + logsToDraw[i].height && height + y > logsToDraw[i].y) {
+
+	        this.vX = logsToDraw[i].vX;
+	        this.x += this.vX;
+	        return true;
+	      }
+	    }
+	  }
+
+	  logCollisionDetection(logsToDraw) {
+	    while (this.y < 350 && this.y > 50) {
+	      if (this.findLogsCollision(logsToDraw)) {
 	        return true;
 	      } else {
-	        frogger.startLifes--;
-	        frogger.resetFrog();
-	        alert('Ya Dead!');
+	        this.startLifes--;
+	        this.resetFrog();
 	      }
 	    }
 	  }
 
-	  frogInDock(frogger, docksToDraw) {
-	    for (var i = 0; i < docksToDraw.length; i++) {
-	      if (frogger.x < docksToDraw[i].x + docksToDraw[i].width && //
-	      frogger.x + frogger.width > docksToDraw[i].x && frogger.y < docksToDraw[i].y + docksToDraw[i].height && frogger.height + frogger.y > docksToDraw[i].y) {
-	        return true;
-	      }
-	    }
-	  }
-
-	  frogLandInDock(frogger, docksToDraw) {
-	    while (frogger.y < 100) {
-	      if (this.frogInDock(frogger, docksToDraw)) {
-	        setTimeout(function () {
-	          frogger.resetFrog();
-	        }, 1000);
+	  frogLandInDock(array) {
+	    while (this.y < 100) {
+	      if (this.frogCanDock(array)) {
+	        this.resetFrog();
 	      }
 	      break;
 	    }
 	  }
 
-	}
+	  frogCanDock(array) {
+	    for (let i = 0; i < array.length; i++) {
+	      if (this.x > array[i].x - this.width / 2 && this.x + this.width < array[i].x + array[i].width + this.width / 2) {
+	        return true;
+	      }
+	    }
+	  }
 
-	var frogImage;
-
-	loadResources();
-
-	function loadResources() {
-	  frogImage = new Image();
-	  frogImage.src = "lib/images/frog.png";
-	}
-
-	function findLogsCollision(frogger, logsToDraw) {
-	  for (var i = 0; i < logsToDraw.length; i++) {
-	    if (frogger.x < logsToDraw[i].x + logsToDraw[i].width && frogger.x + frogger.width > logsToDraw[i].x && frogger.y < logsToDraw[i].y + logsToDraw[i].height && frogger.height + frogger.y > logsToDraw[i].y) {
-	      frogger.vX = logsToDraw[i].vX;
-	      frogger.logMove();
+	  gameOverCheck() {
+	    if (this.startLifes === 0) {
+	      this.resetFrog();
+	      this.startLifes = 3;
 	      return true;
 	    }
 	  }
 	}
-
-	function frogMoveIntoDock(frogger, docksToDraw) {
-	  for (var i = 0; i < docksToDraw.length; i++) {
-	    if (frogger.x > docksToDraw[i].x && frogger.x + frogger.width < docksToDraw[i].x + docksToDraw[i].width) {
-	      return true;
-	    }
-	  }
-	}
-
-	// function Frog(x, y) {
-	//   this.x = x;
-	//   this.y = y;
-	//   this.height = 45;
-	//   this.width = 45;
-	//   this.startLifes = 3;
-	//   this.vX = 0;
-	// }
-	//
-	//
-	//
-	// Frog.prototype.draw = function (ctx) {
-	//   ctx.drawImage(frogImage,
-	//     this.x,
-	//     this.y,
-	//     this.width,
-	//     this.height
-	//    );
-	// };
-	//
-	// Frog.prototype.move = function(event, canvas) {
-	//   switch (event.keyCode) {
-	//   case this.x < canvas.width - 50 && (39 || 68):
-	//     this.x += 50;
-	//     break;
-	//   case this.x > 0 && (37 || 65):
-	//     this.x -= 50;
-	//     break
-	//   case this.y > 100 && (38 || 87):
-	//     this.y -= 50;
-	//     break
-	//   case this.y < canvas.height - 100 && (40 || 83):
-	//     this.y += 50;
-	//     break
-	//   default:
-	//   }
-	// }
-	//
-	// Frog.prototype.moveInDock = function(event, canvas, frogger, docksToDraw) {
-	//   switch (event.keyCode) {
-	//   case this.x < canvas.width - 50 && (39 || 68):
-	//     this.x += 50;
-	//     break;
-	//   case this.x > 0 && (37 || 65):
-	//     this.x -= 50;
-	//     break
-	//   case frogMoveIntoDock(frogger, docksToDraw) && (38 || 87):
-	//     this.y -= 50;
-	//     break
-	//   case this.y < canvas.height - 100 && (40 || 83):
-	//     this.y += 50;
-	//     break
-	//   default:
-	//   }
-	// }
-	//
-	// Frog.prototype.logMove = function() {
-	//   this.x += this.vX
-	// }
-	//
-	// Frog.prototype.resetFrog = function () {
-	//   this.x = 350;
-	//   this.y = 650;
-	// }
-	//
-	// Frog.prototype.collisionDetection = function (frogger, carsToDraw) {
-	//   carsToDraw.forEach(function(car) {
-	//     if (frogger.x < car.x + car.width &&
-	//     frogger.x + frogger.width > car.x &&
-	//     frogger.y < car.y + car.height  &&
-	//     frogger.height + frogger.y > car.y) {
-	//       console.log(frogger);
-	//       frogger.startLifes--;
-	//       frogger.resetFrog();
-	//       alert('Ya Dead!');
-	//
-	//     } else if (!frogger.startLifes) {
-	//       frogger.startLifes = 3;
-	//       alert('Game Over');
-	//     }
-	//   })
-	// };
-	//
-	//
-	//
-	// Frog.prototype.logCollisionDetection = function(frogger, logsToDraw) {
-	//   while (frogger.y < 350 && frogger.y > 50) {
-	//     if (findLogsCollision(frogger, logsToDraw)) {
-	//       return true;
-	//     } else {
-	//       frogger.startLifes--;
-	//       frogger.resetFrog();
-	//       alert('Ya Dead!');
-	//     }
-	//   }
-	// }
-	//
-	// Frog.prototype.frogInDock = function (frogger, docksToDraw) {
-	//   for (var i = 0; i < docksToDraw.length; i++) {
-	//     if (frogger.x < docksToDraw[i].x + docksToDraw[i].width && //
-	//       frogger.x + frogger.width > docksToDraw[i].x &&
-	//       frogger.y < docksToDraw[i].y + docksToDraw[i].height  &&
-	//       frogger.height + frogger.y > docksToDraw[i].y) {
-	//       return true;
-	//     }
-	//   }
-	// }
-	//
-	//
-	//
-	// Frog.prototype.frogLandInDock = function (frogger, docksToDraw) {
-	//   while (frogger.y < 100) {
-	//     if (this.frogInDock(frogger, docksToDraw)) {
-	//       setTimeout(function () {
-	//         frogger.resetFrog();
-	//       }, 1000)
-	//     }
-	//     break
-	//   }
-	// };
 
 	module.exports = Frog;
 
@@ -490,10 +410,15 @@
 	  }
 
 	  draw(ctx) {
+	    let carImage = new Image();
+	    let carImage2 = new Image();
+
+	    carImage.src = "lib/images/car-left.png";
+	    carImage2.src = "lib/images/batmobile-left.png";
 	    ctx.drawImage(carImage, this.x, this.y, this.width, this.height);
 	  }
 
-	  resetPostition() {
+	  resetPosition() {
 	    if (this.x <= -50) {
 	      this.x = 850;
 	    } else if (this.x >= 850) {
@@ -504,55 +429,63 @@
 	  moveCars() {
 	    this.x += this.vX;
 	  }
+
+	  putCarsInGame(ctx) {
+	    this.draw(ctx);
+	    this.moveCars();
+	    this.resetPosition();
+	  }
+
+	  generateCarsArray() {
+	    const carsArray = [];
+	    let x = 100;
+
+	    for (let i = 1; i < 13; i++) {
+	      switch (i === true) {
+	        case i > 3:
+	          {
+	            const carRow1 = new Cars(x, 600, 50, 35, -1);
+
+	            x += 200;
+	            carsArray.push(carRow1);
+	            break;
+	          }
+	        case i > 6:
+	          {
+	            const carRow2 = new Cars(x, 550, 50, 35, 2);
+
+	            x -= 200;
+	            carsArray.push(carRow2);
+	            break;
+	          }
+	        case i > 9:
+	          {
+	            const carRow3 = new Cars(x, 500, 50, 35, -2);
+
+	            x += 250;
+	            carsArray.push(carRow3);
+	            break;
+	          }
+	        case i > 10:
+	          {
+	            const carRow4 = new Cars(x, 450, 50, 35, 3);
+
+	            carsArray.push(carRow4);
+	            break;
+	          }
+	        case i > 12:
+	          {
+	            const carRow5 = new Cars(x, 400, 90, 40, -2);
+
+	            x -= 350;
+	            carsArray.push(carRow5);
+	            break;
+	          }
+	      }
+	    }
+	    return carsArray;
+	  }
 	}
-
-	var carImage;
-	var carImage2;
-
-	loadResources();
-
-	function loadResources() {
-	  carImage = new Image();
-	  carImage.src = "lib/images/batmobile-left.png";
-	  carImage2 = new Image();
-	  carImage2.src = "lib/images/car-left.png";
-	}
-
-	// function Cars(x, y, width, height, vX) {
-	//   this.x = x;
-	//   this.y = y;
-	//   this.height = height;
-	//   this.width = width;
-	//   this.vX = vX;
-	// }
-	//
-	//
-	// Cars.prototype.draw = function (ctx) {
-	//   ctx.drawImage(carImage,
-	//     this.x,
-	//     this.y,
-	//     this.width,
-	//     this.height
-	//   );
-	//   ctx.drawImage(carImage2,
-	//     this.x,
-	//     this.y,
-	//     this.width,
-	//     this.height
-	//   );
-	// };
-	//
-	// Cars.prototype.resetPostition = function()  {
-	//   if (this.x <= -50) {
-	//     this.x = 850;
-	//   } else if (this.x >= 850) {
-	//     this.x = -50;
-	//   }
-	// }
-	//
-	// Cars.prototype.moveCars = function() {
-	//   this.x += this.vX;
-	// }
 
 	module.exports = Cars;
 
@@ -564,12 +497,15 @@
 	  constructor(x, y, width, height, vX) {
 	    this.x = x;
 	    this.y = y;
-	    this.height = height;
 	    this.width = width;
+	    this.height = height;
 	    this.vX = vX;
 	  }
 
 	  draw(ctx) {
+	    const logImage = new Image();
+
+	    logImage.src = "lib/images/log.png";
 	    ctx.drawImage(logImage, this.x, this.y, this.width, this.height);
 	  }
 
@@ -584,44 +520,63 @@
 	  moveLogs() {
 	    this.x += this.vX;
 	  }
+
+	  putLogsInGame(ctx) {
+	    this.draw(ctx);
+	    this.moveLogs();
+	    this.resetPosition();
+	  }
+
+	  generateLogsArray() {
+	    const logsArray = [];
+	    let x = 100;
+
+	    for (let i = 1; i < 13; i++) {
+	      switch (i === true) {
+	        case i > 3:
+	          {
+	            const logRow1 = new Logs(x, 300, 100, 50, -3);
+
+	            x += 200;
+	            logsArray.push(logRow1);
+	            break;
+	          }
+	        case i > 6:
+	          {
+	            const logRow2 = new Logs(x, 250, 150, 50, 2);
+
+	            x -= 200;
+	            logsArray.push(logRow2);
+	            break;
+	          }
+	        case i > 9:
+	          {
+	            const logRow3 = new Logs(x, 200, 100, 50, -2);
+
+	            x += 250;
+	            logsArray.push(logRow3);
+	            break;
+	          }
+	        case i > 10:
+	          {
+	            const logRow4 = new Logs(x, 150, 150, 50, 3);
+
+	            logsArray.push(logRow4);
+	            break;
+	          }
+	        case i > 12:
+	          {
+	            const logRow5 = new Logs(x, 100, 90, 50, -2);
+
+	            x -= 350;
+	            logsArray.push(logRow5);
+	            break;
+	          }
+	      }
+	    }
+	    return logsArray;
+	  }
 	}
-
-	var logImage;
-
-	loadResources();
-
-	function loadResources() {
-	  logImage = new Image();
-	  logImage.src = "lib/images/log.png";
-	}
-	// function Logs(x, y, width, height, vX) {
-	//   this.x = x;
-	//   this.y = y;
-	//   this.height = height;
-	//   this.width = width;
-	//   this.vX = vX;
-	// }
-
-	// Logs.prototype.draw = function (ctx) {
-	//   ctx.drawImage(logImage,
-	//     this.x,
-	//     this.y,
-	//     this.width,
-	//     this.height
-	//   );
-	// };
-	//
-	// Logs.prototype.resetPostition = function()  {
-	//   if (this.x <= -150) {
-	//     this.x = 850;
-	//   } else if (this.x >= 850) {
-	//     this.x = -150;
-	//   }
-	// }
-	//
-	// Logs.prototype.moveLogs = function() {
-	//   this.x += this.vX;
-	// }
 
 	module.exports = Logs;
 
@@ -637,49 +592,158 @@
 	    this.height = 50;
 	  }
 
-	  drawDock(ctx) {
+	  draw(ctx) {
+	    const dockImage = new Image();
+
+	    dockImage.src = "lib/images/lilypad.png";
 	    ctx.drawImage(dockImage, this.x, this.y, this.width = 75, this.height = 50);
 	  }
+
+	  generateDock() {
+	    const dockArray = [];
+	    let x = 50;
+
+	    for (let i = 0; i < 5; i++) {
+	      const newDock = new Dock(x, 50);
+
+	      dockArray.push(newDock);
+	      x += 75 + newDock.height;
+	    }
+	    return dockArray;
+	  }
 	}
-
-	var dockImage;
-
-	loadResources();
-
-	function loadResources() {
-	  dockImage = new Image();
-	  dockImage.src = "lib/images/lilypad.png";
-	}
-
-	// function Dock(x, y) {
-	//   this.x = x;
-	//   this.y = y;
-	//   this.width = 80;
-	//   this.height = 50;
-	// }
-	//
-	// Dock.prototype.drawDock = function (ctx) {
-	//   ctx.drawImage(dockImage,
-	//     this.x,
-	//     this.y,
-	//     this.width = 75,
-	//     this.height = 50
-	//   )
-	// };
 
 	module.exports = Dock;
 
 /***/ }),
 /* 6 */
+/***/ (function(module, exports) {
+
+	class Gameboard {
+	  constructor(x, y, width, height) {
+	    this.x = x;
+	    this.y = y;
+	    this.width = width;
+	    this.height = height;
+	    this.score = 0;
+	    this.level = 1;
+	    this.levelCounter = 0;
+	    if (JSON.parse(localStorage.getItem("hiScore")) === null) {
+	      this.hiScore = 0;
+	    } else {
+	      this.hiScore = JSON.parse(localStorage.getItem("hiScore"));
+	    }
+	  }
+
+	  draw(ctx) {
+	    ctx.fillStyle = 'black';
+	    ctx.fillRect(0, 0, 700, 50);
+	    ctx.fillStyle = 'blue';
+	    ctx.fillRect(0, 50, 700, 300);
+	    ctx.fillStyle = 'green';
+	    ctx.fillRect(0, 350, 700, 50);
+	    ctx.fillStyle = 'grey';
+	    ctx.fillRect(0, 400, 700, 250);
+	    ctx.fillStyle = 'green';
+	    ctx.fillRect(0, 650, 700, 50);
+	    ctx.fillStyle = 'black';
+	    ctx.fillRect(0, 700, 700, 50);
+	  }
+
+	  drawLives(ctx, numLives) {
+	    ctx.font = "30px Comic Sans MS";
+	    ctx.fillStyle = 'white';
+	    ctx.fillText(numLives + ' Lives', 25, 735);
+	  }
+
+	  drawScore(ctx) {
+	    ctx.font = "30px Comic Sans MS";
+	    ctx.fillStyle = 'white';
+	    ctx.fillText('Score: ' + this.score, 25, 35);
+	  }
+
+	  drawLevel(ctx) {
+	    ctx.font = "30px Comic Sans MS";
+	    ctx.fillStyle = 'white';
+	    ctx.fillText('Level: ' + this.level, 550, 735);
+	  }
+
+	  drawHiScore(ctx) {
+	    ctx.font = "30px Comic Sans MS";
+	    ctx.fillStyle = 'white';
+	    ctx.fillText('Hi-Score: ' + this.hiScore, 450, 35);
+	  }
+
+	  putBoardInGame(ctx, numLives) {
+	    this.draw(ctx);
+	    this.drawLives(ctx, numLives);
+	    this.drawScore(ctx);
+	    this.drawLevel(ctx);
+	    this.drawHiScore(ctx);
+	  }
+
+	  keepScore(gamePiece) {
+	    if (gamePiece.y < 100) {
+	      this.score += 25;
+	    }
+	  }
+
+	  newHiScore() {
+	    if (this.score > this.hiScore) {
+	      this.hiScore = this.score;
+	      localStorage.setItem("hiScore", this.hiScore);
+	    }
+	  }
+
+	  levelUp(gamePiece, obstacleArray, obstacleArray2) {
+	    if (this.score % 125 === 0 && gamePiece.y < 100) {
+	      this.level++;
+	      this.levelCounter++;
+	      this.difficultyUp(obstacleArray, obstacleArray2);
+	    }
+	  }
+
+	  difficultyUp(obstacleArray, obstacleArray2) {
+	    obstacleArray.forEach(obstacle => {
+	      obstacle.vX < 0 ? obstacle.vX-- : obstacle.vX++;
+	    });
+	    obstacleArray2.forEach(obstacle => {
+	      obstacle.vX < 0 ? obstacle.vX-- : obstacle.vX++;
+	    });
+	  }
+
+	  levelDownHelper(obstacle) {
+	    obstacle.vX < 0 ? obstacle.vX + this.levelCounter : obstacle.vX - this.levelCounter;
+	  }
+
+	  levelDown(gamePiece, obstacleArray, obstacleArray2) {
+	    if (gamePiece.startLifes === 0) {
+	      obstacleArray.forEach(obstacle => {
+	        obstacle.vX < 0 ? obstacle.vX += this.levelCounter : obstacle.vX -= this.levelCounter;
+	      });
+	      obstacleArray2.forEach(obstacle => {
+	        obstacle.vX < 0 ? obstacle.vX += this.levelCounter : obstacle.vX -= this.levelCounter;
+	      });
+	      this.levelCounter = 0;
+	      this.level = 1;
+	      this.score = 0;
+	    }
+	  }
+	}
+
+	module.exports = Gameboard;
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(7);
+	var content = __webpack_require__(8);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(9)(content, {});
+	var update = __webpack_require__(10)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -696,21 +760,21 @@
 	}
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(8)();
+	exports = module.exports = __webpack_require__(9)();
 	// imports
 
 
 	// module
-	exports.push([module.id, "body {\n  text-align: center;\n}\n\ncanvas {\n  margin-top: 25px;\n  border: 1px dashed black;\n}\n", ""]);
+	exports.push([module.id, "html {\n  background-color: black;\n}\n\nbody {\n  box-sizing: border-box;\n  font-family: 'Press Start 2P', cursive;\n  text-align: center;\n}\n\np {\n  font-size: 24px;\n}\n\n#game-container {\n  height: 750px;\n  margin: 50px auto;\n  position: relative;\n  width: 750px\n}\n\ncanvas {\n  border: 25px groove rgb(91, 185, 81);\n  border-radius: 15px;\n  margin: 0;\n  z-index: 1;\n}\n\n#game-start {\n  background: lightgray;\n  display: inline-block;\n  height: 750px;\n  left: 25px;\n  position: absolute;\n  top: 25px;\n  width: 700px;\n  z-index: 2;\n}\n\n#start-logo {\n  margin: 30px auto 0;\n}\n\n#start-button {\n  margin: 20px auto;\n  font-size: 30px;\n  font-family: 'Press Start 2P', cursive;\n  box-shadow: 3px 3px 1px black;\n  border-radius: 10px;\n}\n\n#game-paused {\n  display: none;\n  height: 750px;\n  left: 25px;\n  position: absolute;\n  top: 25px;\n  width: 700px;\n  z-index: 4;\n}\n\n#pause-logo {\n  margin-top: 150px;\n}\n\n#pause-background {\n  display: none;\n  height: 750px;\n  background-color: lightgray;\n  left: 25px;\n  position: absolute;\n  top: 25px;\n  width: 700px;\n  z-index: 3;\n  opacity: .5;\n}\n\n#game-died {\n  display: none;\n  height: 750px;\n  left: 25px;\n  position: absolute;\n  top: 25px;\n  width: 700px;\n  z-index: 4;\n}\n\n#player-dead {\n  color: red;\n}\n\n#game-over {\n  display: none;\n  height: 750px;\n  left: 25px;\n  position: absolute;\n  top: 25px;\n  width: 700px;\n  z-index: 5;\n}\n\n.game-status {\n  color: #35BF36;\n  font-size: 48pt;\n  margin: 15px auto;\n}\n\n.directions {\n  width: 550px;\n  margin: 50px auto 0;\n}\n\nbutton {\n  background-color: #35BF36;\n  border: none;\n  color: white;\n  height: 50px;\n  font-size: 20px;\n  font-weight: bold;\n  text-decoration: none;\n  width: 200px;\n}\n", ""]);
 
 	// exports
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 	/*
@@ -766,7 +830,7 @@
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*
